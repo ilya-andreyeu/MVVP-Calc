@@ -1,5 +1,6 @@
 using System;
 using Models;
+using Views;
 
 public class CalculatorViewModel
 {
@@ -7,8 +8,7 @@ public class CalculatorViewModel
     private event Action<string> onCalculationValueChanged;
     private void InitializeInternal()
     {
-        calculatorModel = new CalculatorModel();
-        calculatorModel.SetCallback(OnModelValueChangedHandler);
+        calculatorModel = new CalculatorModel(OnModelValueChangedHandler);
     }
 
     private void OnModelValueChangedHandler(int value)
@@ -16,9 +16,9 @@ public class CalculatorViewModel
         onCalculationValueChanged?.Invoke(value.ToString());
     }
 
-    public void Initialize(ICalculatorView view)
+    public void Initialize(ICalculatorView view, Action<string> onValueSetCallback)
     {
-        InitializeInternal();
+        onCalculationValueChanged = onValueSetCallback;
         view.SetCallbacks(new CalculatorActions
         {
             onInputUpdated = OnInputUpdatedHandler,
@@ -29,16 +29,12 @@ public class CalculatorViewModel
             onClearButtonClicked = OnClearButtonClickedHandler,
             onResultButtonClicked = OnResultButtonClickedHandler,
         });
+        InitializeInternal();
     }
 
     private void OnResultButtonClickedHandler()
     {
         calculatorModel.Result();
-    }
-
-    public void SetCallbacks(Action<string> onValueSetCallback)
-    {
-        onCalculationValueChanged = onValueSetCallback;
     }
 
     private void OnInputUpdatedHandler(string value)
